@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "schema": [
+    {
+      "name": "state-request",
+      "namespace": "example",
+      "compact": false,
+      "flagsPosition": 0,
+      "fields": [
+        {
+          "name": "payload",
+          "type": "json",
+          "version": 1
+        },
+        {
+          "name": "action",
+          "type": "string",
+          "version": 1
+        }
+      ]
+    },
+    {
+      "name": "state-response",
+      "namespace": "example",
+      "compact": false,
+      "flagsPosition": 0,
+      "fields": [
+        {
+          "name": "state",
+          "type": "json",
+          "version": 1
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "namespace": "example",
+      "compact": false,
+      "flagsPosition": 0,
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "version": 1
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "version": 1
+        },
+        {
+          "name": "age",
+          "type": "uint",
+          "version": 1
+        }
+      ]
+    }
+  ]
+}

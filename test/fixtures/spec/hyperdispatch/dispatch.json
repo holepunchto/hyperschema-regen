@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "offset": 0,
+  "schema": [
+    {
+      "id": 0,
+      "name": "@example/update-state",
+      "requestType": "@example/state-request",
+      "version": 1
+    }
+  ]
+}

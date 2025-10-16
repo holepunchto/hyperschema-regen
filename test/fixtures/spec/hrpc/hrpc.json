@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "schema": [
+    {
+      "id": 0,
+      "name": "@example/state",
+      "request": {
+        "name": "@example/state-request",
+        "stream": false
+      },
+      "response": {
+        "name": "@example/state-response",
+        "stream": false
+      },
+      "version": 1
+    }
+  ]
+}

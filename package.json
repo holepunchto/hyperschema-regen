@@ -1,0 +1,29 @@
+{
+  "name": "regen",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier . --write",
+    "test": "prettier . --check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/regen.git"
+  },
+  "author": "Holepunch",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/holepunchto/regen/issues"
+  },
+  "keywords": [],
+  "description": "",
+  "dependencies": {
+    "hyperdb": "^4.19.0",
+    "hyperdispatch": "^1.4.4",
+    "hyperschema": "^1.17.0",
+    "paparam": "^1.8.6"
+  },
+  "devDependencies": {
+    "prettier-config-holepunch": "^2.0.0"
+  }
+}
