@@ -1,5 +1,6 @@
 {
   "name": "regen",
+  "description": "A tool for regenerating schema files",
   "version": "1.0.0",
   "bin": "index.js",
   "scripts": {
@@ -16,7 +17,6 @@
     "url": "https://github.com/holepunchto/regen/issues"
   },
   "keywords": [],
-  "description": "",
   "dependencies": {
     "hrpc": "^4.2.0",
     "hyperdb": "^4.19.0",

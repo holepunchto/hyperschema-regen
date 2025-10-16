@@ -2,7 +2,7 @@
 
 const path = require('path')
 const fs = require('fs')
-// const proc = require("bare-subprocess");
+const proc = require('child_process')
 const Hyperdispatch = require('hyperdispatch')
 const Hyperschema = require('hyperschema')
 const HyperDB = require('hyperdb/builder')
@@ -19,11 +19,17 @@ const cmd = command(
   flag('--output|-o [dir]', 'Output directory for generated files. Defaults to input directory'),
   flag('--verbose|-v', 'Verbose output'),
   arg('[path]', 'Path to directory to walk through to find JSON files. Default: ./spec'),
-  () => {
+  async () => {
     const targetFolder = path.normalize(cmd.args.path || './spec')
     const outputFolder = cmd.flags.output ? path.normalize(cmd.flags.output) : targetFolder
 
     console.log(`Regenerating schema files from ${green(targetFolder)} to ${green(outputFolder)}`)
+
+    if (cmd.flags.commit) {
+      console.log(`\nChecking out commit ${cmd.flags.commit} for ${targetFolder}`)
+      proc.spawnSync('git', ['checkout', cmd.flags.commit, targetFolder], { stdio: 'inherit' })
+      console.log('')
+    }
 
     // Get files and handle hyperschema first
     const schemaFiles = findSchemaFiles(targetFolder).sort((a, b) =>
