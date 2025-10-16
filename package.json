@@ -1,7 +1,7 @@
 {
-  "name": "@holepunchto/regen",
+  "name": "@holepunchto/hyperschema-regen",
   "description": "A tool for regenerating schema files",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "bin": "index.js",
   "scripts": {
     "format": "prettier . --write",
@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/holepunchto/regen.git"
+    "url": "git+https://github.com/holepunchto/hyperschema-regen.git"
   },
   "author": "Holepunch",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/holepunchto/regen/issues"
+    "url": "https://github.com/holepunchto/hyperschema-regen/issues"
   },
   "keywords": [],
   "dependencies": {

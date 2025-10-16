@@ -1,4 +1,4 @@
-# Regen
+# hyperschema-regen
 
 A tool for regenerating schema files from JSON and a Git commit.
 
@@ -10,13 +10,13 @@ Will checkout the provided commit for the target folder, and regenerate the sche
 ## Usage
 
 ```
-npx @holepunchto/regen -c [commit] <target_folder>
+npx @holepunchto/hyperschema-regen -c [commit] <target_folder>
 ```
 
 e.g.
 
 ```
-npx @holepunchto/regen -c main ./spec
+npx @holepunchto/hyperschema-regen -c main ./spec
 ```
 
 ## Help
@@ -24,7 +24,7 @@ npx @holepunchto/regen -c main ./spec
 ```
 Regenerate schema files
 
-  regen [flags] [path]
+  hyperschema-regen [flags] [path]
 
   Regenerate schema files from JSON at a specific Git commit (supports hyperschema, hyperdb, hyperdispatch and hrpc)
 

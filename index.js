@@ -10,7 +10,7 @@ const Hrpc = require('hrpc')
 const { header, summary, command, flag, arg } = require('paparam')
 
 const cmd = command(
-  'regen',
+  'hyperschema-regen',
   header('Regenerate schema files'),
   summary(
     'Regenerate schema files from JSON at a specific Git commit (supports hyperschema, hyperdb, hyperdispatch and hrpc)'
