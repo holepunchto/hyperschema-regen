@@ -1,7 +1,7 @@
 {
   "name": "regen",
   "version": "1.0.0",
-  "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "format": "prettier . --write",
     "test": "prettier . --check"
