@@ -34,6 +34,7 @@ Regenerate schema files
   Flags:
     --commit|-c [hash]   Git commit hash to regenerate from
     --output|-o [dir]    Output directory for generated files. Defaults to input directory
+    --chdir [dir]        Change directory for running commands from and git checkout
     --verbose|-v         Verbose output
     --help|-h            Show help
 ```
