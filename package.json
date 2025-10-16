@@ -18,6 +18,7 @@
   "keywords": [],
   "description": "",
   "dependencies": {
+    "hrpc": "^4.2.0",
     "hyperdb": "^4.19.0",
     "hyperdispatch": "^1.4.4",
     "hyperschema": "^1.17.0",
