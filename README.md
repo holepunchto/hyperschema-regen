@@ -7,16 +7,16 @@ Will checkout the provided commit for the target folder, and regenerate the sche
 > [!note]
 > Will find all JSON files in the folder. Provide your `./spec` folder or similar, not the individual folders.
 
-## Install
-
-```
-npm install -g @holepunchto/regen
-```
-
 ## Usage
 
 ```
-regen -c [commit] <target_folder>
+npx @holepunchto/regen -c [commit] <target_folder>
+```
+
+e.g.
+
+```
+npx @holepunchto/regen -c main ./spec
 ```
 
 ## Help
