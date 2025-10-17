@@ -13,7 +13,33 @@
       "key": [
         "username"
       ],
-      "trigger": null
+      "trigger": "someTrigger"
+    },
+    {
+      "name": "admins",
+      "namespace": "example-other",
+      "id": 1,
+      "type": 1,
+      "indexes": [],
+      "schema": "@example/user",
+      "derived": false,
+      "key": [
+        "username"
+      ],
+      "trigger": "someTrigger"
+    },
+    {
+      "name": "others",
+      "namespace": "example",
+      "id": 2,
+      "type": 1,
+      "indexes": [],
+      "schema": "@example/user",
+      "derived": false,
+      "key": [
+        "username"
+      ],
+      "trigger": "someTrigger"
     }
   ]
 }
