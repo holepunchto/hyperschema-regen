@@ -7,7 +7,7 @@ const Hyperdispatch = require('hyperdispatch')
 const Hyperschema = require('hyperschema')
 const HyperDB = require('hyperdb/builder')
 const Hrpc = require('hrpc')
-const { header, summary, command, flag, arg } = require('paparam')
+const { header, summary, command, flag, arg, validate } = require('paparam')
 
 const cmd = command(
   'hyperschema-regen',
@@ -19,6 +19,14 @@ const cmd = command(
   flag('--output|-o [dir]', 'Output directory for generated files. Defaults to input directory'),
   flag('--chdir [dir]', 'Change directory for running commands from and git checkout'),
   flag('--verbose|-v', 'Verbose output'),
+  flag(
+    '--require|-r [require]',
+    "Require hyperdb helpers against namespace using 'namespace:path' pair. E.g. my-namespace:path/to/file.js"
+  ).multiple(),
+  validate(
+    ({ flags }) => flags.require.every((r) => /^[\w-]+:.*.js$/i.test(r)),
+    '--require must be valid namespace:path pair. E.g. my-namespace:path/to/file.js'
+  ),
   arg('[path]', 'Path to directory to walk through to find JSON files. Default: ./spec'),
   async () => {
     const targetFolder = path.normalize(cmd.args.path || './spec')
@@ -85,6 +93,13 @@ const cmd = command(
           const schemaDir = directory.replace('/hyperdb', '/hyperschema')
           const hyperdb = HyperDB.from(schemaDir, directory)
           try {
+            if (cmd.flags.require) {
+              cmd.flags.require.forEach((r) => {
+                const [namespace, path] = r.split(':')
+                hyperdb.getNamespace(namespace).require(path)
+              })
+            }
+
             HyperDB.toDisk(hyperdb, outputDir)
             if (cmd.flags.verbose) {
               console.log(` - Generated hyperdb file ${green(outputDir)}`)

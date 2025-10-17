@@ -13,7 +13,7 @@
       "key": [
         "username"
       ],
-      "trigger": "someTrigger"
+      "trigger": null
     },
     {
       "name": "admins",
@@ -26,7 +26,7 @@
       "key": [
         "username"
       ],
-      "trigger": "someTrigger"
+      "trigger": "adminTrigger"
     },
     {
       "name": "others",
@@ -39,7 +39,7 @@
       "key": [
         "username"
       ],
-      "trigger": "someTrigger"
+      "trigger": "otherTrigger"
     }
   ]
 }
