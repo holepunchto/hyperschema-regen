@@ -1,172 +1,145 @@
-#!/usr/bin/env node
+const proc = require('bare-subprocess')
+const tmp = require('test-tmp')
+const fs = require('bare-fs')
+const test = require('brittle')
+const path = require('bare-path')
+const { Version } = require('bare-semver')
 
-const path = require('path')
-const fs = require('fs')
-const proc = require('child_process')
-const Hyperdispatch = require('hyperdispatch')
-const Hyperschema = require('hyperschema')
-const HyperDB = require('hyperdb/builder')
-const Hrpc = require('hrpc')
-const { header, summary, command, flag, arg, validate } = require('paparam')
+function checkoutSpec(dir, tag, specFolder = './spec') {
+  proc.spawnSync('git', ['checkout', tag, specFolder], { stdio: 'pipe', cwd: dir })
+}
 
-const cmd = command(
-  'hyperschema-regen',
-  header('Regenerate schema files'),
-  summary(
-    'Regenerate schema files from JSON at a specific Git commit (supports hyperschema, hyperdb, hyperdispatch and hrpc)'
-  ),
-  flag('--commit|-c [hash]', 'Git commit hash to regenerate from'),
-  flag('--output|-o [dir]', 'Output directory for generated files. Defaults to input directory'),
-  flag('--chdir [dir]', 'Change directory for running commands from and git checkout'),
-  flag('--verbose|-v', 'Verbose output'),
-  flag(
-    '--require|-r [require]',
-    "Require hyperdb helpers against namespace using 'namespace:path' pair. E.g. my-namespace:path/to/file.js"
-  ).multiple(),
-  validate(
-    ({ flags }) => flags.require.every((r) => /^[\w-]+:.*.js$/i.test(r)),
-    '--require must be valid namespace:path pair. E.g. my-namespace:path/to/file.js'
-  ),
-  arg('[path]', 'Path to directory to walk through to find JSON files. Default: ./spec'),
-  async () => {
-    const targetFolder = path.normalize(cmd.args.path || './spec')
-    const outputFolder = cmd.flags.output ? path.normalize(cmd.flags.output) : targetFolder
+async function getSchemas(t, target) {
+  fs.statSync(target)
 
-    console.log(`Regenerating schema files from ${blue(targetFolder)} to ${green(outputFolder)}`)
+  const dir = await tmp(t)
 
-    if (cmd.flags.chdir) {
-      console.log(`\nChanging directory to ${blue(cmd.flags.chdir)}`)
-      process.chdir(cmd.flags.chdir)
-      console.log('')
+  const currentTag = getTag()
+  const previousTag = getPreviousRelease()
+
+  t.not(
+    currentTag,
+    previousTag,
+    `tags are different: Previous: ${previousTag}, Current:${currentTag}`
+  )
+
+  // Copy target to temp directory
+  const targetCopy = path.join(dir, path.basename(target))
+  fs.copyFileSync(target, targetCopy)
+
+  fs.statSync(targetCopy)
+
+  // Get old schema
+  proc.spawnSync('git', ['checkout', previousTag, target], { stdio: 'inherit' })
+  const oldSpec = path.join(dir, `${previousTag}-${path.basename(target)}`)
+  fs.copyFileSync(target, oldSpec)
+
+  fs.statSync(oldSpec)
+
+  // Restore original spec
+  fs.copyFileSync(targetCopy, target)
+
+  const previousSchema = JSON.parse(fs.readFileSync(oldSpec))
+  const currentSchema = JSON.parse(fs.readFileSync(targetCopy))
+
+  t.ok(previousSchema, 'loaded old schema')
+  t.ok(currentSchema, 'loaded new schema')
+
+  t.ok(Object.keys(previousSchema).length > 0, 'old schema has keys')
+  t.ok(Object.keys(currentSchema).length > 0, 'new schema has keys')
+
+  return { previousSchema, previousTag, currentSchema, currentTag }
+}
+
+// Helpers
+async function compareSchema(target) {
+  await test(`comparing ${target}`, async (t) => {
+    const { previousSchema, currentSchema, previousTag, currentTag } = await getSchemas(t, target)
+
+    t.pass(`Checking schema ${target}. Current: ${currentTag}, Previous: ${previousTag}`)
+
+    const previousSchemaValues = previousSchema.schema.reduce((acc, s) => {
+      acc[`@${s.namespace}/${s.name}`] = s
+      return acc
+    }, {})
+
+    const currentSchemaValues = currentSchema.schema.reduce((acc, s) => {
+      acc[`@${s.namespace}/${s.name}`] = s
+      return acc
+    }, {})
+
+    for (const [key, value] of Object.entries(previousSchemaValues)) {
+      await t.test(key, (t) => {
+        const current = currentSchemaValues[key]
+
+        t.ok(current, `schema ${key} exists in current schema`)
+        t.is(current.id, value.id, `id matches`)
+
+        for (const k in current) {
+          console.log('checking ', k)
+          if (typeof current[k] === 'object') {
+            t.alike(current[k], value[k], `${k} matches`)
+          } else {
+            t.is(current[k], value[k], `${k} matches`)
+          }
+        }
+      })
     }
+  })
+}
 
-    if (cmd.flags.commit) {
-      console.log(`\nChecking out commit ${blue(cmd.flags.commit)} for ${blue(targetFolder)}`)
-      proc.spawnSync('git', ['checkout', cmd.flags.commit, targetFolder], { stdio: 'inherit' })
-      console.log('')
-    }
+function getPreviousRelease() {
+  const currentTag = getTag()
 
-    // Get files and handle hyperschema first
-    const schemaFiles = findSchemaFiles(targetFolder).sort((a, b) =>
-      a.endsWith('schema.json') ? -1 : 1
-    )
+  const currentVersion = Version.parse(currentTag.replace(/^v/, ''))
+  let version = new Version(currentVersion.major, currentVersion.minor, currentVersion.patch)
 
-    if (!fs.existsSync(outputFolder)) {
-      fs.mkdirSync(outputFolder, { recursive: true })
-    }
+  // If we're on a new release, we want to look at the previous release
+  if (version.patch === 0) version = subMinor(version)
 
-    for (const file of schemaFiles) {
-      const fileName = path.basename(file)
-      const directory = path.dirname(file)
-      const outputDir = outputFolder ? directory.replace(targetFolder, outputFolder) : directory
+  // Only even minor releases
+  if (version.minor % 2 === 1) version = subMinor(version)
 
-      switch (fileName) {
-        case 'schema.json': {
-          const hyperschema = Hyperschema.from(directory)
-          try {
-            Hyperschema.toDisk(hyperschema, outputDir)
-            if (cmd.flags.verbose) {
-              console.log(` - Generated hyperschema file ${green(outputDir)}`)
-            }
-          } catch (e) {
-            console.error(` - Error generating hyperschema file ${red(outputDir)}:`, e)
-            process.exit(1)
-          }
-          break
-        }
-        case 'hrpc.json': {
-          const schemaDir = directory.replace('/hrpc', '/hyperschema')
-          const hrpc = Hrpc.from(schemaDir, directory)
-          try {
-            Hrpc.toDisk(hrpc, outputDir)
+  if (currentVersion.compare(version) !== 1) {
+    throw new Error('Current version is not greater than the previous release')
+  }
 
-            if (cmd.flags.verbose) {
-              console.log(` - Generated hrpc file ${green(outputDir)}`)
-            }
-          } catch (e) {
-            console.error(` - Error generating hrpc file ${red(outputDir)}:`, e)
-            process.exit(1)
-          }
-          break
-        }
-        case 'db.json': {
-          const schemaDir = directory.replace('/hyperdb', '/hyperschema')
-          const hyperdb = HyperDB.from(schemaDir, directory)
-          try {
-            if (cmd.flags.require) {
-              cmd.flags.require.forEach((r) => {
-                const [namespace, path] = r.split(':')
-                hyperdb.getNamespace(namespace).require(path)
-              })
-            }
-
-            HyperDB.toDisk(hyperdb, outputDir)
-            if (cmd.flags.verbose) {
-              console.log(` - Generated hyperdb file ${green(outputDir)}`)
-            }
-          } catch (e) {
-            console.error(` - Error generating hyperdb file ${red(outputDir)}:`, e)
-            process.exit(1)
-          }
-          break
-        }
-        case 'dispatch.json': {
-          const contents = JSON.parse(fs.readFileSync(file, 'utf8'))
-          const schemaDir = directory.replace('/hyperdispatch', '/hyperschema')
-          const hyperdispatch = Hyperdispatch.from(
-            schemaDir,
-            directory,
-            contents.offset
-              ? {
-                  offset: contents.offset
-                }
-              : undefined
-          )
-          try {
-            Hyperdispatch.toDisk(hyperdispatch, outputDir)
-            if (cmd.flags.verbose) {
-              console.log(` - Generated hyperdispatch file ${green(outputDir)}`)
-            }
-          } catch (e) {
-            console.error(` - Error generating hyperdispatch file ${red(outputDir)}:`, e)
-            process.exit(1)
-          }
-
-          break
-        }
+  const tags = proc
+    .spawnSync(
+      'git',
+      ['tag', '-l', `v${version.major}.${version.minor}.*`, '--sort=-version:refname'],
+      {
+        stdio: 'pipe'
       }
-    }
+    )
+    .stdout.toString()
+    .trim()
+
+  const latestRelease = tags.split('\n')[0]
+
+  return latestRelease
+}
+
+function subMinor(version) {
+  return new Version(version.major, Math.max(version.minor - 1, 0), 0)
+}
+
+function getTag(tag) {
+  const args = ['describe', '--tags']
+
+  if (tag) {
+    args.push('--abbrev=0')
+    args.push(tag)
   }
-)
+  const tagInfo = proc.spawnSync('git', args, { stdio: 'pipe' }).stdout.toString().trim()
 
-cmd.parse()
-
-function findSchemaFiles(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true })
-  const results = []
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
-
-    if (entry.isDirectory()) {
-      const subFiles = findSchemaFiles(fullPath)
-      results.push(...subFiles)
-    } else if (entry.isFile() && path.extname(entry.name).toLowerCase() === '.json') {
-      results.push(fullPath)
-    }
-  }
-
-  return results
+  return tagInfo
 }
 
-function green(text) {
-  return `\x1b[32m${text}\x1b[0m`
-}
-
-function blue(text) {
-  return `\x1b[34m${text}\x1b[0m`
-}
-
-function red(text) {
-  return `\x1b[31m${text}\x1b[0m`
+module.exports = {
+  compareSchema,
+  checkoutSpec,
+  getPreviousRelease,
+  getTag,
+  getSchemas
 }

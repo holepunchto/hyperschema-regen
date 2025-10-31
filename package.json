@@ -1,7 +1,7 @@
 {
   "name": "@holepunchto/hyperschema-regen",
   "description": "A tool for regenerating schema files",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "bin": "index.js",
   "scripts": {
     "format": "prettier . --write",
@@ -18,11 +18,18 @@
   },
   "keywords": [],
   "dependencies": {
+    "bare-fs": "^4.5.0",
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.2.2",
+    "bare-semver": "^1.0.2",
+    "bare-subprocess": "^5.1.4",
+    "brittle": "^3.19.0",
     "hrpc": "^4.2.0",
     "hyperdb": "^4.19.0",
     "hyperdispatch": "^1.4.4",
     "hyperschema": "^1.17.0",
-    "paparam": "^1.8.6"
+    "paparam": "^1.8.6",
+    "test-tmp": "^1.4.0"
   },
   "devDependencies": {
     "prettier-config-holepunch": "^2.0.0"
