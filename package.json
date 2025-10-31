@@ -1,8 +1,11 @@
 {
   "name": "@holepunchto/hyperschema-regen",
   "description": "A tool for regenerating schema files",
-  "version": "2.0.0",
-  "bin": "index.js",
+  "version": "2.0.1",
+  "main": "index.js",
+  "bin": {
+    "hyperschema-regen": "bin.js"
+  },
   "scripts": {
     "format": "prettier . --write",
     "test": "prettier . --check"
@@ -11,6 +14,10 @@
     "type": "git",
     "url": "git+https://github.com/holepunchto/hyperschema-regen.git"
   },
+  "files": [
+    "bin.js",
+    "index.js"
+  ],
   "author": "Holepunch",
   "license": "Apache-2.0",
   "bugs": {

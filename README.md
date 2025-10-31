@@ -1,8 +1,8 @@
 # hyperschema-regen
 
-A tool for regenerating schema files from JSON and a Git commit.
+A tool for regenerating and validating schema files from JSON and a Git commit.
 
-Will checkout the provided commit for the target folder, and regenerate the schema files from the JSON files in the target folder (or provided output folder).
+Can checkout entire spec folders to previous releases (based on version tags) and validate individual JSON files against previous releases.
 
 > [!note]
 > Will find all JSON files in the folder. Provide your `./spec` folder or similar, not the individual folders.
@@ -10,13 +10,13 @@ Will checkout the provided commit for the target folder, and regenerate the sche
 ## Usage
 
 ```
-npx @holepunchto/hyperschema-regen -c [commit] <target_folder>
+npx @holepunchto/hyperschema-regen <target_file>
 ```
 
 e.g.
 
 ```
-npx @holepunchto/hyperschema-regen -c main ./spec
+npx @holepunchto/hyperschema-regen spec/contract/hyperdb/db.json
 ```
 
 ## Help
@@ -24,17 +24,19 @@ npx @holepunchto/hyperschema-regen -c main ./spec
 ```
 Regenerate schema files
 
-  hyperschema-regen [flags] [path]
+  hyperschema-regen [flags] [command] [...target]
 
-  Regenerate schema files from JSON at a specific Git commit (supports hyperschema, hyperdb, hyperdispatch and hrpc)
+  Compare schema files for a target
+
+  Check target files are append-only compared to previous release
 
   Arguments:
-    [path]               Optional. Path to directory to walk through to find JSON files. Default: ./spec
+    [...target]
 
   Flags:
-    --commit|-c [hash]   Git commit hash to regenerate from
-    --output|-o [dir]    Output directory for generated files. Defaults to input directory
-    --chdir [dir]        Change directory for running commands from and git checkout
-    --verbose|-v         Verbose output
-    --help|-h            Show help
+    --chdir [dir]   Change working directory
+    --help|-h       Show help
+
+  Commands:
+    checkout        Checkout spec to previous release tag
 ```

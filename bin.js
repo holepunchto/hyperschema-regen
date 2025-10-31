@@ -3,7 +3,7 @@
 const path = require('bare-path')
 const process = require('bare-process')
 const fs = require('bare-fs')
-const { header, summary, command, rest, flag, arg, validate } = require('paparam')
+const { header, summary, command, rest, flag, arg, validate, description } = require('paparam')
 const { compareSchema, getPreviousRelease, checkoutSpec } = require('.')
 
 const checkout = command(
@@ -29,9 +29,8 @@ const checkout = command(
 const cmd = command(
   'hyperschema-regen',
   header('Regenerate schema files'),
-  summary(
-    'Regenerate schema files from JSON at a specific Git commit (supports hyperschema, hyperdb, hyperdispatch and hrpc)'
-  ),
+  summary('Compare schema files for a target'),
+  description('Check target files are append-only compared to previous release'),
   flag('--chdir [dir]', 'Change working directory'),
   rest('[...target]'),
   validate(({ rest }) => rest.length, 'No target(s) specified'),
