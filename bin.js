@@ -6,18 +6,18 @@ const fs = require('bare-fs')
 const { header, summary, command, rest, flag, arg, validate, description } = require('paparam')
 const { compareSchema, getPreviousRelease, checkoutSpec } = require('.')
 
-const checkout = command(
+const checkoutCmd = command(
   'checkout',
   header('Checkout spec to previous release tag'),
   summary('Checkout spec to previous release tag'),
   arg('<spec>', 'The spec folder to checkout'),
   async () => {
     if (cmd.flags.chdir) {
-      console.log(`\nChanging directory to ${blue(cmd.flags.chdir)}`)
+      console.log(`Changing directory to ${blue(cmd.flags.chdir)}`)
       process.chdir(cmd.flags.chdir)
     }
     const previousTag = getPreviousRelease()
-    const specFolder = path.normalize(checkout.args.spec || './spec')
+    const specFolder = path.normalize(checkoutCmd.args.spec || './spec')
 
     console.log(`Checking out ${blue(specFolder)} to ${blue(previousTag)}`)
 
@@ -26,23 +26,19 @@ const checkout = command(
   }
 )
 
-const cmd = command(
-  'hyperschema-regen',
-  header('Regenerate schema files'),
+const validateCmd = command(
+  'validate',
   summary('Compare schema files for a target'),
   description('Check target files are append-only compared to previous release'),
-  flag('--chdir [dir]', 'Change working directory'),
   rest('[...target]'),
   validate(({ rest }) => rest.length, 'No target(s) specified'),
-  checkout,
   async () => {
     if (cmd.flags.chdir) {
-      console.log(`\nChanging directory to ${blue(cmd.flags.chdir)}`)
+      console.log(`Changing directory to ${blue(cmd.flags.chdir)}`)
       process.chdir(cmd.flags.chdir)
-      console.log('')
     }
 
-    for (const target of cmd.rest) {
+    for (const target of validateCmd.rest) {
       const targetPath = path.normalize(target)
 
       if (!fs.existsSync(targetPath)) {
@@ -53,7 +49,20 @@ const cmd = command(
       console.log(`Comparing schema files for ${blue(targetPath)}`)
 
       await compareSchema(targetPath)
+
+      console.log('')
     }
+  }
+)
+
+const cmd = command(
+  'hyperschema-regen',
+  header('Regenerate schema files'),
+  flag('--chdir [dir]', 'Change working directory'),
+  checkoutCmd,
+  validateCmd,
+  () => {
+    console.log(cmd.help())
   }
 )
 
