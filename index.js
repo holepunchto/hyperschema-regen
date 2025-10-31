@@ -20,7 +20,7 @@ async function getSchemas(t, target) {
   t.not(
     currentTag,
     previousTag,
-    `tags are different: Previous: ${previousTag}, Current:${currentTag}`
+    `tags are different. Current: ${currentTag}, Previous: ${previousTag}`
   )
 
   // Copy target to temp directory
