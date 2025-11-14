@@ -1,10 +1,16 @@
 #!/usr/bin/env bare
 
-const path = require('bare-path')
-const process = require('bare-process')
-const fs = require('bare-fs')
-const { header, summary, command, rest, flag, arg, validate, description } = require('paparam')
-const { compareSchema, getPreviousRelease, checkoutSpec } = require('.')
+const {
+  header,
+  summary,
+  command,
+  rest,
+  flag,
+  arg,
+  validate: validateArgs,
+  description
+} = require('paparam')
+const { checkout, validate } = require('.')
 
 const checkoutCmd = command(
   'checkout',
@@ -16,13 +22,8 @@ const checkoutCmd = command(
       console.log(`Changing directory to ${blue(cmd.flags.chdir)}`)
       process.chdir(cmd.flags.chdir)
     }
-    const previousTag = getPreviousRelease()
-    const specFolder = path.normalize(checkoutCmd.args.spec || './spec')
 
-    console.log(`Checking out ${blue(specFolder)} to ${blue(previousTag)}`)
-
-    // Already changed directory
-    checkoutSpec(undefined, previousTag, specFolder)
+    checkout(checkoutCmd.args.spec)
   }
 )
 
@@ -31,29 +32,20 @@ const validateCmd = command(
   summary('Compare schema files for a target'),
   description('Check target files are append-only compared to previous release'),
   rest('[...target]'),
-  validate(({ rest }) => rest.length, 'No target(s) specified'),
+  validateArgs(({ rest }) => rest.length, 'No target(s) specified'),
   async () => {
     if (cmd.flags.chdir) {
       console.log(`Changing directory to ${blue(cmd.flags.chdir)}`)
       process.chdir(cmd.flags.chdir)
     }
 
-    for (const target of validateCmd.rest) {
-      const targetPath = path.normalize(target)
-
-      if (!fs.existsSync(targetPath)) {
-        console.error(red(`Target ${targetPath} does not exist`))
-        process.exit(1)
-      }
-
-      console.log(`Comparing schema files for ${blue(targetPath)}`)
-
-      await compareSchema(targetPath)
-
-      console.log('')
-    }
+    await validate(...validateCmd.rest)
   }
 )
+
+const previousCmd = command('previous', summary('Get the previous release tag'), async () => {
+  console.log(getPreviousRelease())
+})
 
 const cmd = command(
   'hyperschema-regen',
@@ -61,17 +53,10 @@ const cmd = command(
   flag('--chdir [dir]', 'Change working directory'),
   checkoutCmd,
   validateCmd,
+  previousCmd,
   () => {
     console.log(cmd.help())
   }
 )
 
 cmd.parse()
-
-function blue(text) {
-  return `\x1b[34m${text}\x1b[0m`
-}
-
-function red(text) {
-  return `\x1b[31m${text}\x1b[0m`
-}

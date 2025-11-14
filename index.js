@@ -3,6 +3,7 @@ const tmp = require('test-tmp')
 const fs = require('bare-fs')
 const test = require('brittle')
 const path = require('bare-path')
+const process = require('bare-process')
 const { Version } = require('bare-semver')
 
 function checkoutSpec(dir, tag, specFolder = './spec') {
@@ -136,10 +137,43 @@ function getTag(tag) {
   return tagInfo
 }
 
+function checkout(spec = './spec') {
+  const previousTag = getPreviousRelease()
+  const specFolder = path.normalize(spec)
+
+  console.log(`Checking out ${blue(specFolder)} to ${blue(previousTag)}`)
+
+  // Already changed directory
+  checkoutSpec(undefined, previousTag, specFolder)
+}
+
+async function validate(...targets) {
+  for (const target of targets) {
+    const targetPath = path.normalize(target)
+
+    if (!fs.existsSync(targetPath)) {
+      console.error(red(`Target ${targetPath} does not exist`))
+      process.exit(1)
+    }
+
+    console.log(`Comparing schema files for ${blue(targetPath)}`)
+
+    await compareSchema(targetPath)
+
+    console.log('')
+  }
+}
+
+function blue(text) {
+  return `\x1b[34m${text}\x1b[0m`
+}
+
+function red(text) {
+  return `\x1b[31m${text}\x1b[0m`
+}
+
 module.exports = {
-  compareSchema,
-  checkoutSpec,
-  getPreviousRelease,
-  getTag,
-  getSchemas
+  checkout,
+  validate,
+  getPreviousRelease
 }
