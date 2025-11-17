@@ -1,0 +1,39 @@
+{
+  "version": 0,
+  "offset": 0,
+  "schema": [
+    {
+      "name": "users",
+      "namespace": "example",
+      "id": 0,
+      "type": 1,
+      "indexes": [],
+      "schema": "@example/user",
+      "derived": false,
+      "key": ["username"],
+      "trigger": null
+    },
+    {
+      "name": "admins",
+      "namespace": "example-other",
+      "id": 1,
+      "type": 1,
+      "indexes": [],
+      "schema": "@example/user",
+      "derived": false,
+      "key": ["username"],
+      "trigger": "adminTrigger"
+    },
+    {
+      "name": "others",
+      "namespace": "example",
+      "id": 2,
+      "type": 1,
+      "indexes": [],
+      "schema": "@example/user",
+      "derived": false,
+      "key": ["username"],
+      "trigger": "otherTrigger"
+    }
+  ]
+}
