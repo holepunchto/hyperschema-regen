@@ -1,92 +1,87 @@
 const proc = require('bare-subprocess')
-const tmp = require('test-tmp')
 const fs = require('bare-fs')
-const test = require('brittle')
 const path = require('bare-path')
 const process = require('bare-process')
 const { Version } = require('bare-semver')
+const sameObject = require('same-object')
 
 function checkoutSpec(dir, tag, specFolder = './spec') {
   proc.spawnSync('git', ['checkout', tag, specFolder], { stdio: 'pipe', cwd: dir })
 }
 
-async function getSchemas(t, target) {
+function getSchemas(target) {
   fs.statSync(target)
-
-  const dir = await tmp(t)
 
   const currentTag = getTag()
   const previousTag = getPreviousRelease()
 
-  t.not(
-    currentTag,
-    previousTag,
-    `tags are different. Current: ${currentTag}, Previous: ${previousTag}`
-  )
+  if (currentTag === previousTag) {
+    throw new Error(`tags are the same. Current: ${currentTag}, Previous: ${previousTag}`)
+  }
 
-  // Copy target to temp directory
-  const targetCopy = path.join(dir, path.basename(target))
-  fs.copyFileSync(target, targetCopy)
+  // Open target
+  const currentSchemaContents = fs.readFileSync(target)
 
-  fs.statSync(targetCopy)
+  const currentSchema = JSON.parse(currentSchemaContents)
+  if (Object.keys(currentSchema).length === 0) {
+    throw new Error('Target schema empty')
+  }
 
   // Get old schema
   proc.spawnSync('git', ['checkout', previousTag, target], { stdio: 'inherit' })
-  const oldSpec = path.join(dir, `${previousTag}-${path.basename(target)}`)
-  fs.copyFileSync(target, oldSpec)
+  const previousSchema = JSON.parse(fs.readFileSync(target))
 
-  fs.statSync(oldSpec)
+  // Put target back
+  fs.writeFileSync(target, currentSchemaContents)
 
-  // Restore original spec
-  fs.copyFileSync(targetCopy, target)
-
-  const previousSchema = JSON.parse(fs.readFileSync(oldSpec))
-  const currentSchema = JSON.parse(fs.readFileSync(targetCopy))
-
-  t.ok(previousSchema, 'loaded old schema')
-  t.ok(currentSchema, 'loaded new schema')
-
-  t.ok(Object.keys(previousSchema).length > 0, 'old schema has keys')
-  t.ok(Object.keys(currentSchema).length > 0, 'new schema has keys')
+  if (Object.keys(previousSchema).length === 0) {
+    throw new Error('Previous schema empty')
+  }
 
   return { previousSchema, previousTag, currentSchema, currentTag }
 }
 
 // Helpers
-async function compareSchema(target) {
-  await test(`comparing ${target}`, async (t) => {
-    const { previousSchema, currentSchema, previousTag, currentTag } = await getSchemas(t, target)
+function compareSchemas(previousSchema, currentSchema) {
+  const previousSchemaValues = previousSchema.schema.reduce((acc, s) => {
+    acc[`@${s.namespace}/${s.name}`] = s
+    return acc
+  }, {})
 
-    t.pass(`Checking schema ${target}. Current: ${currentTag}, Previous: ${previousTag}`)
+  const currentSchemaValues = currentSchema.schema.reduce((acc, s) => {
+    acc[`@${s.namespace}/${s.name}`] = s
+    return acc
+  }, {})
 
-    const previousSchemaValues = previousSchema.schema.reduce((acc, s) => {
-      acc[`@${s.namespace}/${s.name}`] = s
-      return acc
-    }, {})
+  for (const [key, value] of Object.entries(previousSchemaValues)) {
+    console.log('-', blue(key))
+    const current = currentSchemaValues[key]
 
-    const currentSchemaValues = currentSchema.schema.reduce((acc, s) => {
-      acc[`@${s.namespace}/${s.name}`] = s
-      return acc
-    }, {})
-
-    for (const [key, value] of Object.entries(previousSchemaValues)) {
-      await t.test(key, (t) => {
-        const current = currentSchemaValues[key]
-
-        t.ok(current, `schema ${key} exists in current schema`)
-        t.is(current.id, value.id, `id matches`)
-
-        for (const k in current) {
-          console.log('checking ', k)
-          if (typeof current[k] === 'object') {
-            t.alike(current[k], value[k], `${k} matches`)
-          } else {
-            t.is(current[k], value[k], `${k} matches`)
-          }
-        }
-      })
+    if (current) {
+      console.log(`  - collection exists`)
+    } else {
+      throw new Error(`collection NOT in current schema`)
     }
-  })
+
+    // Explicity check this first
+    if (current.id === value.id) {
+      console.log(`  - id matches: ${current.id}`)
+    } else {
+      throw new Error(`IDs do not match: ${current.id} !== ${value.id}`)
+    }
+
+    for (const k in current) {
+      if (
+        (typeof current[k] === 'object' && sameObject(current[k], value[k])) ||
+        current[k] === value[k]
+      ) {
+        console.log(`  - ${k} matches`)
+        continue
+      }
+
+      throw new Error(`${k} does not match: ${current[k]} !== ${value[k]}`)
+    }
+  }
 }
 
 function getPreviousRelease() {
@@ -147,7 +142,7 @@ function checkout(spec = './spec') {
   checkoutSpec(undefined, previousTag, specFolder)
 }
 
-async function validate(...targets) {
+function validate(...targets) {
   for (const target of targets) {
     const targetPath = path.normalize(target)
 
@@ -158,9 +153,10 @@ async function validate(...targets) {
 
     console.log(`Comparing schema files for ${blue(targetPath)}`)
 
-    await compareSchema(targetPath)
+    const { previousSchema, currentSchema, currentTag, previousTag } = getSchemas(targetPath)
+    console.log(`Tags -> Current: ${currentTag}, Previous: ${previousTag}`)
 
-    console.log('')
+    compareSchemas(previousSchema, currentSchema)
   }
 }
 
@@ -175,5 +171,6 @@ function red(text) {
 module.exports = {
   checkout,
   validate,
-  getPreviousRelease
+  getPreviousRelease,
+  compareSchemas
 }

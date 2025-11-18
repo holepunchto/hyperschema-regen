@@ -39,7 +39,7 @@ const validateCmd = command(
       process.chdir(cmd.flags.chdir)
     }
 
-    await validate(...validateCmd.rest)
+    validate(...validateCmd.rest)
   }
 )
 

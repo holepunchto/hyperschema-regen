@@ -10,9 +10,7 @@
       "indexes": [],
       "schema": "@example/user",
       "derived": false,
-      "key": [
-        "username"
-      ],
+      "key": ["username"],
       "trigger": null
     },
     {
@@ -23,9 +21,7 @@
       "indexes": [],
       "schema": "@example/user",
       "derived": false,
-      "key": [
-        "username"
-      ],
+      "key": ["username"],
       "trigger": "adminTrigger"
     },
     {
@@ -36,9 +32,7 @@
       "indexes": [],
       "schema": "@example/user",
       "derived": false,
-      "key": [
-        "username"
-      ],
+      "key": ["username"],
       "trigger": "otherTrigger"
     }
   ]
