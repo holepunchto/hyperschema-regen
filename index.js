@@ -5,6 +5,12 @@ const process = require('bare-process')
 const { Version } = require('bare-semver')
 const sameObject = require('same-object')
 
+function verbose(...msg) {
+  if (process.env.REGEN_VERBOSE) {
+    console.log(...msg)
+  }
+}
+
 function checkoutSpec(dir, tag, specFolder = './spec') {
   proc.spawnSync('git', ['checkout', tag, specFolder], { stdio: 'pipe', cwd: dir })
 }
@@ -54,18 +60,18 @@ function compareSchemas(previousSchema, currentSchema) {
   }, {})
 
   for (const [key, value] of Object.entries(previousSchemaValues)) {
-    console.log('-', blue(key))
+    verbose('-', blue(key))
     const current = currentSchemaValues[key]
 
     if (current) {
-      console.log(`  - collection exists`)
+      verbose(`  - collection exists`)
     } else {
       throw new Error(`collection NOT in current schema`)
     }
 
     // Explicity check this first
     if (current.id === value.id) {
-      console.log(`  - id matches: ${current.id}`)
+      verbose(`  - id matches: ${current.id}`)
     } else {
       throw new Error(`IDs do not match: ${current.id} !== ${value.id}`)
     }
@@ -75,7 +81,7 @@ function compareSchemas(previousSchema, currentSchema) {
         (typeof current[k] === 'object' && sameObject(current[k], value[k])) ||
         current[k] === value[k]
       ) {
-        console.log(`  - ${k} matches`)
+        verbose(`  - ${k} matches`)
         continue
       }
 
@@ -154,9 +160,11 @@ function validate(...targets) {
     console.log(`Comparing schema files for ${blue(targetPath)}`)
 
     const { previousSchema, currentSchema, currentTag, previousTag } = getSchemas(targetPath)
-    console.log(`Tags -> Current: ${currentTag}, Previous: ${previousTag}`)
+    verbose(`Tags -> Current: ${currentTag}, Previous: ${previousTag}`)
 
     compareSchemas(previousSchema, currentSchema)
+
+    console.log(`✅ Schema OK for ${blue(targetPath)}`)
   }
 }
 
