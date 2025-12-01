@@ -77,6 +77,16 @@ function compareSchemas(previousSchema, currentSchema) {
     }
 
     for (const k in current) {
+      if (k === 'version') {
+        validateVersion(current[k], value[k])
+        continue
+      }
+
+      if (k === 'versionField') {
+        validateVersionVield(current[k], value[k])
+        continue
+      }
+
       if (
         (typeof current[k] === 'object' && sameObject(current[k], value[k])) ||
         current[k] === value[k]
@@ -87,6 +97,19 @@ function compareSchemas(previousSchema, currentSchema) {
 
       throw new Error(`${k} does not match: ${current[k]} !== ${value[k]}`)
     }
+  }
+}
+
+function validateVersion(newV, oldV) {
+  if (typeof newV !== 'number') throw new Error(`version must be number`)
+  if (!oldV) return
+  if (newV < oldV) throw new Error('version cannot decrease')
+}
+
+function validateVersionVield(newV, oldV) {
+  if (!oldV) return
+  if (typeof newV !== 'string') {
+    throw new Error(`versionField not string`)
   }
 }
 
