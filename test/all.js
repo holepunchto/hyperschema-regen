@@ -26,4 +26,25 @@ test('fails on changed schemas', (t) => {
 
     t.exception(() => compareSchemas(schema, changed), /Error: collection NOT in current schema/)
   }
+
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, version: 0 }))
+    }
+
+    t.exception(() => compareSchemas(schema, changed), /Error: version cannot decrease/)
+  }
+
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, versionField: 'changed' }))
+    }
+
+    t.exception(
+      () => compareSchemas(schema, changed),
+      /Error: versionField does not match: field !== changed/
+    )
+  }
 })
