@@ -30,9 +30,21 @@ test('fails on changed schemas', (t) => {
   {
     const changed = {
       ...schema,
-      schema: schema.schema.map((s) => ({ ...s, version: 0, versionField: 'test' }))
+      schema: schema.schema.map((s) => ({ ...s, version: 0 }))
     }
 
     t.exception(() => compareSchemas(schema, changed), /Error: version cannot decrease/)
+  }
+
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, versionField: 'changed' }))
+    }
+
+    t.exception(
+      () => compareSchemas(schema, changed),
+      /Error: versionField does not match: field !== changed/
+    )
   }
 })

@@ -108,8 +108,8 @@ function validateVersion(newV, oldV) {
 
 function validateVersionVield(newV, oldV) {
   if (!oldV) return
-  if (typeof newV !== 'string') {
-    throw new Error(`versionField not string`)
+  if (oldV !== newV) {
+    throw new Error(`versionField does not match: ${oldV} !== ${newV}`)
   }
 }
 
