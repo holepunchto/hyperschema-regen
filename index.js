@@ -21,7 +21,7 @@ function getSchemas(target) {
   const currentTag = getTag()
   const previousTag = getPreviousRelease()
 
-  if (currentTag === previousTag) {
+  if (currentTag === previousTag && currentTag !== 'hyperschema-checkpoint') {
     throw new Error(`tags are the same. Current: ${currentTag}, Previous: ${previousTag}`)
   }
 
@@ -115,6 +115,10 @@ function validateVersionVield(newV, oldV) {
 
 function getPreviousRelease() {
   const currentTag = getTag()
+
+  if (currentTag === 'hyperschema-checkpoint') {
+    return 'hyperschema-checkpoint'
+  }
 
   const currentVersion = Version.parse(currentTag.replace(/^v/, ''))
   let version = new Version(currentVersion.major, currentVersion.minor, currentVersion.patch)
