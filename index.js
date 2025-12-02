@@ -142,6 +142,17 @@ function getPreviousRelease() {
 
   const latestRelease = tags.split('\n')[0]
 
+  const newer = proc.spawnSync('git', [
+    'merge-base',
+    '--is-ancestor',
+    latestRelease,
+    'hyperschema-checkpoint'
+  ])
+
+  if (!newer.status) {
+    return 'hyperschema-checkpoint'
+  }
+
   return latestRelease
 }
 
@@ -157,7 +168,6 @@ function getTag(tag) {
     args.push(tag)
   }
   const tagInfo = proc.spawnSync('git', args, { stdio: 'pipe' }).stdout.toString().trim()
-
   return tagInfo
 }
 
