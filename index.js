@@ -149,7 +149,7 @@ function getPreviousRelease() {
   const newer = proc.spawnSync('git', [
     'merge-base',
     '--is-ancestor',
-    latestRelease,
+    latestRelease.replace(/\.\d+$/, '.0'),
     'hyperschema-checkpoint'
   ])
 
