@@ -9,7 +9,7 @@
       "type": 1,
       "version": 2,
       "versionField": "field",
-      "indexes": [],
+      "indexes": ["one", "two"],
       "schema": "@example/user",
       "derived": false,
       "key": ["username"],

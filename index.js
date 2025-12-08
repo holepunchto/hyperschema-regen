@@ -87,6 +87,11 @@ function compareSchemas(previousSchema, currentSchema) {
         continue
       }
 
+      if (k === 'indexes') {
+        validateIndexes(current[k], value[k])
+        continue
+      }
+
       if (k === 'deprecated') {
         continue
       }
@@ -100,6 +105,17 @@ function compareSchemas(previousSchema, currentSchema) {
       }
 
       throw new Error(`${k} does not match: ${current[k]} !== ${value[k]}`)
+    }
+  }
+}
+
+function validateIndexes(newIndexes, oldIndexes) {
+  if (newIndexes.length < oldIndexes.length)
+    throw new Error(`Indexes are append-only: length changed`)
+
+  for (let i = 0; i < oldIndexes.length; i++) {
+    if (newIndexes[i] !== oldIndexes[i]) {
+      throw new Error(`Indexes are append-only: ${newIndexes[i]} !== ${oldIndexes[i]}`)
     }
   }
 }

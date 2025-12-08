@@ -47,4 +47,39 @@ test('fails on changed schemas', (t) => {
       /Error: versionField does not match: field !== changed/
     )
   }
+
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, indexes: ['one'] }))
+    }
+
+    t.exception(
+      () => compareSchemas(schema, changed),
+      /Error: Indexes are append-only: length changed/
+    )
+  }
+
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, indexes: ['bad', 'two'] }))
+    }
+
+    t.exception(
+      () => compareSchemas(schema, changed),
+      /Error: Indexes are append-only: bad !== one/
+    )
+  }
+})
+
+test('passes on good changed schemas', (t) => {
+  {
+    const changed = {
+      ...schema,
+      schema: schema.schema.map((s) => ({ ...s, indexes: ['one', 'two', 'three'] }))
+    }
+
+    compareSchemas(schema, changed)
+  }
 })
