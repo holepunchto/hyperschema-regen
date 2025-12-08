@@ -4,10 +4,18 @@ A tool for regenerating and validating schema files from JSON and a Git commit.
 
 Can checkout entire spec folders to previous releases (based on version tags) and validate individual JSON files against previous releases.
 
-> [!note]
-> Will find all JSON files in the folder. Provide your `./spec` folder or similar, not the individual folders.
-
 ## Usage
+
+Best practise is to use this in your scripts that generate your schemas.
+
+```js
+const regen = require('@holepunchto/hyperschema-regen')
+regen.checkout()
+
+buildMySpec()
+
+regen.validate('spec/hyperdb/db.json',)
+```
 
 ### validate
 
@@ -15,36 +23,17 @@ Validate checks out the previous release tag for the given target file and compa
 
 Ensures no fields in the previous schema are missing or changed.
 
-```
-npx @holepunchto/hyperschema-regen validate <target_file>
-```
+```js
+const regen = require('@holepunchto/hyperschema-regen')
 
-e.g.
-
-```
-npx @holepunchto/hyperschema-regen validate spec/contract/hyperdb/db.json
+regen.validate('spec/contract/hyperdb/db.json', 'spec/local/hyperdb/db.json')
 ```
 
 ### checkout
 
 Checkout `./spec` to previous release tag
 
-```
-npx @holepunchto/hyperschema-regen checkout
-```
-
-## Help
-
-```
-Regenerate schema files
-
-  hyperschema-regen [flags] [command]
-
-  Flags:
-    --chdir [dir]   Change working directory
-    --help|-h       Show help
-
-  Commands:
-    checkout        Checkout spec to previous release tag
-    validate        Compare schema files for a target
+```js
+const regen = require('@holepunchto/hyperschema-regen')
+regen.checkout()
 ```
