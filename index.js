@@ -87,6 +87,10 @@ function compareSchemas(previousSchema, currentSchema) {
         continue
       }
 
+      if (k === 'deprecated') {
+        continue
+      }
+
       if (
         (typeof current[k] === 'object' && sameObject(current[k], value[k])) ||
         current[k] === value[k]
