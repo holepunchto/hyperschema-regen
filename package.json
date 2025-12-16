@@ -1,7 +1,7 @@
 {
   "name": "@holepunchto/hyperschema-regen",
   "description": "A tool for regenerating schema files",
-  "version": "2.0.12",
+  "version": "3.0.0",
   "main": "index.js",
   "bin": {
     "hyperschema-regen": "bin.js"
@@ -31,7 +31,7 @@
     "bare-semver": "^1.0.2",
     "bare-subprocess": "^5.1.4",
     "hrpc": "^4.2.0",
-    "hyperdb": "^4.19.0",
+    "hyperdb": "^5.0.0",
     "hyperdispatch": "^1.4.4",
     "hyperschema": "^1.17.0",
     "paparam": "^1.8.6",
