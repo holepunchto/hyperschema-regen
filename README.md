@@ -14,7 +14,7 @@ regen.checkout()
 
 buildMySpec()
 
-regen.validate('spec/hyperdb/db.json',)
+regen.validate('spec/hyperdb/db.json')
 ```
 
 ### validate
