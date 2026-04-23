@@ -8,7 +8,7 @@
   },
   "scripts": {
     "format": "prettier . --write",
-    "test": "prettier . --check && brittle-bare test/all.js"
+    "lint": "prettier . --check && lunte"
   },
   "repository": {
     "type": "git",

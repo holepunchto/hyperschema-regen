@@ -2,7 +2,6 @@ const proc = require('bare-subprocess')
 const fs = require('bare-fs')
 const path = require('bare-path')
 const process = require('bare-process')
-const { Version } = require('bare-semver')
 const sameObject = require('same-object')
 
 function verbose(...msg) {
@@ -110,8 +109,9 @@ function compareSchemas(previousSchema, currentSchema) {
 }
 
 function validateIndexes(newIndexes, oldIndexes) {
-  if (newIndexes.length < oldIndexes.length)
+  if (newIndexes.length < oldIndexes.length) {
     throw new Error(`Indexes are append-only: length changed`)
+  }
 
   for (let i = 0; i < oldIndexes.length; i++) {
     if (newIndexes[i] !== oldIndexes[i]) {
@@ -140,36 +140,23 @@ function getPreviousRelease() {
     return 'hyperschema-checkpoint'
   }
 
-  const currentVersion = Version.parse(currentTag.replace(/^v/, ''))
-  let version = new Version(currentVersion.major, currentVersion.minor, currentVersion.patch)
-
-  // If we're on a new release, we want to look at the previous release
-  if (version.patch === 0) version = subMinor(version)
-
-  // Only even minor releases
-  if (version.minor % 2 === 1) version = subMinor(version)
-
-  if (currentVersion.compare(version) !== 1) {
-    throw new Error('Current version is not greater than the previous release')
-  }
-
   const tags = proc
-    .spawnSync(
-      'git',
-      ['tag', '-l', `v${version.major}.${version.minor}.*`, '--sort=-version:refname'],
-      {
-        stdio: 'pipe'
-      }
-    )
+    .spawnSync('git', ['tag', '-l', '--sort=-version:refname'], { stdio: 'pipe' })
     .stdout.toString()
     .trim()
+    .split('\n')
+    .filter((t) => t && !t.includes('-') && t !== currentTag)
 
-  const latestRelease = tags.split('\n')[0]
+  const latestRelease = tags[0]
+
+  if (!latestRelease) {
+    throw new Error('No previous stable release found')
+  }
 
   const newer = proc.spawnSync('git', [
     'merge-base',
     '--is-ancestor',
-    latestRelease.replace(/\.\d+$/, '.0'),
+    latestRelease,
     'hyperschema-checkpoint'
   ])
 
@@ -178,10 +165,6 @@ function getPreviousRelease() {
   }
 
   return latestRelease
-}
-
-function subMinor(version) {
-  return new Version(version.major, Math.max(version.minor - 1, 0), 0)
 }
 
 function getTag(tag) {
@@ -217,7 +200,7 @@ function validate(...targets) {
     console.log(`Comparing schema files for ${blue(targetPath)}`)
 
     const { previousSchema, currentSchema, currentTag, previousTag } = getSchemas(targetPath)
-    verbose(`Tags -> Current: ${currentTag}, Previous: ${previousTag}`)
+    console.log(`Current: ${currentTag}, Previous: ${previousTag}`)
 
     compareSchemas(previousSchema, currentSchema)
 
@@ -234,6 +217,7 @@ function red(text) {
 }
 
 module.exports = {
+  blue,
   checkout,
   validate,
   getPreviousRelease,

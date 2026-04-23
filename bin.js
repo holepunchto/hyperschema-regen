@@ -10,7 +10,7 @@ const {
   validate: validateArgs,
   description
 } = require('paparam')
-const { checkout, validate } = require('.')
+const { checkout, validate, getPreviousRelease, blue } = require('.')
 
 const checkoutCmd = command(
   'checkout',
