@@ -1,5 +1,5 @@
 {
-  "name": "@holepunchto/hyperschema-regen",
+  "name": "hyperschema-regen",
   "description": "A tool for regenerating schema files",
   "version": "3.0.0",
   "main": "index.js",
