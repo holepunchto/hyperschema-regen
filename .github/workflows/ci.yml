@@ -13,5 +13,5 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Test / ${{ matrix.os }}
     steps:
-      - uses: holepunchto/actions/node-base@v1
+      - uses: holepunchto/actions/bare-base@v1
       - run: npm test

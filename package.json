@@ -9,7 +9,7 @@
   "scripts": {
     "format": "prettier . --write",
     "lint": "prettier . --check && lunte",
-    "test": "npm run lint && bare test/all.js"
+    "test": "npm run lint && brittle-bare test/all.js"
   },
   "repository": {
     "type": "git",
