@@ -14,11 +14,11 @@ function checkoutSpec(dir, tag, specFolder = './spec') {
   proc.spawnSync('git', ['checkout', tag, specFolder], { stdio: 'pipe', cwd: dir })
 }
 
-function getSchemas(target) {
+function getSchemas(target, opts = {}) {
   fs.statSync(target)
 
   const currentTag = getTag()
-  const previousTag = getPreviousRelease()
+  const previousTag = opts.tag || getPreviousRelease()
 
   if (currentTag === previousTag && currentTag !== 'hyperschema-checkpoint') {
     throw new Error(`tags are the same. Current: ${currentTag}, Previous: ${previousTag}`)
@@ -178,8 +178,8 @@ function getTag(tag) {
   return tagInfo
 }
 
-function checkout(spec = './spec') {
-  const previousTag = getPreviousRelease()
+function checkout(spec = './spec', opts = {}) {
+  const previousTag = opts.tag || getPreviousRelease()
   const specFolder = path.normalize(spec)
 
   console.log(`Checking out ${blue(specFolder)} to ${blue(previousTag)}`)
@@ -189,6 +189,12 @@ function checkout(spec = './spec') {
 }
 
 function validate(...targets) {
+  // optional trailing options
+  let opts = {}
+  if (targets.length && typeof targets[targets.length - 1] === 'object') {
+    opts = targets.pop()
+  }
+
   for (const target of targets) {
     const targetPath = path.normalize(target)
 
@@ -199,7 +205,7 @@ function validate(...targets) {
 
     console.log(`Comparing schema files for ${blue(targetPath)}`)
 
-    const { previousSchema, currentSchema, currentTag, previousTag } = getSchemas(targetPath)
+    const { previousSchema, currentSchema, currentTag, previousTag } = getSchemas(targetPath, opts)
     console.log(`Current: ${currentTag}, Previous: ${previousTag}`)
 
     compareSchemas(previousSchema, currentSchema)
